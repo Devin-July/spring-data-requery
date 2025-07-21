@@ -135,10 +135,10 @@ subprojects {
             dependency "org.mockito:mockito-core:2.19.0"
             dependency "com.nhaarman:mockito-kotlin:1.6.0"
 
-            dependency "mysql:mysql-connector-java:8.0.11"
-            dependency "org.postgresql:postgresql:42.2.5"
+            dependency "mysql:mysql-connector-java:8.0.33"
+            dependency "org.postgresql:postgresql:42.7.7"
 
-            dependency "com.h2database:h2:1.4.197"
+            dependency "com.h2database:h2:2.3.232"
             dependency "org.testcontainers:mysql:1.7.3"
             dependency "org.testcontainers:mariadb:1.7.3"
             dependency "org.testcontainers:postgresql:1.7.3"
