@@ -116,10 +116,4 @@ compileTestKotlin {
     }
 }
 
-kotlin {
-    experimental {
-        coroutines "enable"
-    }
-}
-
 
