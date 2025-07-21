@@ -48,9 +48,3 @@ jobs:
       if: always()
       with:
         sarif_file: ${{ steps.msdo.outputs.sarifFile }}
-
-    - name: Build with Gradle
-      run: ./gradlew build -x test
-
-    - name: Run dependency check
-      run: ./gradlew dependencies --configuration runtimeClasspath
