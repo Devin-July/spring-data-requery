@@ -1,5 +1,6 @@
 # spring-data-requery
 [![Build Status](https://travis-ci.org/coupang/spring-data-requery.svg?branch=2.x)](https://travis-ci.org/coupang/spring-data-requery)
+[![Security Scanning](https://github.com/Devin-July/spring-data-requery/actions/workflows/security.yml/badge.svg)](https://github.com/Devin-July/spring-data-requery/actions/workflows/security.yml)
 [![jcenter](https://api.bintray.com/packages/coupang/coupang-oss-repository/spring-data-requery/images/download.svg) ](https://bintray.com/coupang/coupang-oss-repository/spring-data-requery/_latestVersion)
 
 Spring Data for [requery](http://requery.io) 
@@ -133,3 +134,13 @@ Java에서는 `default` keyword를 지정하면 되지만, Kotlin에서는 `@Jvm
 
 [Apache Phoenix](https://phoenix.apache.org/)를 requery를 이용하여 사용하기 위한 라이브러리입니다. 
 HBase 가 `INSERT`, `UPDATE`  대신 `UPSERT`  만을 지원하므로, Apache Phoenix용 SQL문을 생성하도록 하는 라이브러리입니다.
+
+## Security
+
+This project uses automated security scanning to identify and address potential vulnerabilities:
+
+- **GitHub Dependabot**: Automatically monitors dependencies for known security vulnerabilities and creates pull requests for security updates
+- **Microsoft Security DevOps**: Comprehensive security analysis including secrets scanning, dependency analysis, and infrastructure-as-code security checks
+- **Automated Workflows**: Security scans run on every push, pull request, and weekly scheduled basis
+
+Security scan results are available in the [Security tab](https://github.com/Devin-July/spring-data-requery/security) of this repository.

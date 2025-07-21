@@ -1,0 +1,56 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ 2.0.x, 2.1.x ]
+  pull_request:
+    branches: [ 2.0.x, 2.1.x ]
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  security-scan:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 8
+      uses: actions/setup-java@v4
+      with:
+        java-version: '8'
+        distribution: 'temurin'
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Run Microsoft Security DevOps
+      uses: microsoft/security-devops-action@v1.12.0
+      id: msdo
+      with:
+        categories: 'secrets,dependencies,IaC'
+
+    - name: Upload results to Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: ${{ steps.msdo.outputs.sarifFile }}
+
+    - name: Build with Gradle
+      run: ./gradlew build -x test
+
+    - name: Run dependency check
+      run: ./gradlew dependencies --configuration runtimeClasspath
