@@ -7,7 +7,7 @@ buildscript {
 
     dependencies {
         // for Java apt
-        classpath "net.ltgt.gradle:gradle-apt-plugin:0.15"
+        classpath "net.ltgt.gradle:gradle-apt-plugin:0.21"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
     }
 }
@@ -30,7 +30,7 @@ buildscript {
 
 // lombok을 gradle 에서 사용하기 위한 plugin
 plugins {
-    id 'io.franzbecker.gradle-lombok' version '1.14'
+    id 'io.franzbecker.gradle-lombok' version '5.0.0'
 }
 
 apply plugin: 'java'
