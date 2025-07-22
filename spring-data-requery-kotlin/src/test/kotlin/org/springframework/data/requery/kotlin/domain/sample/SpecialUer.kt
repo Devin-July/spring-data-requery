@@ -21,7 +21,5 @@ package org.springframework.data.requery.kotlin.domain.sample
  *
  * @author debop
  */
-//@Entity
-//@Table(name = "SpecialUser")
 interface SpecialUer : User {
 }

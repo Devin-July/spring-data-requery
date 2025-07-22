@@ -211,22 +211,6 @@ open class RequeryEntityModelEntityInformation<E : Any, ID : Any>(kotlinType: KC
             super.setPropertyValue(propertyName, nestedIdPropertyValue)
         }
 
-        private fun extractActualIdPropertyValue(sourceIdValueWrapper: BeanWrapper,
-                                                 idAttributeName: String): Any? {
-            val idPropertyValue = sourceIdValueWrapper.getPropertyValue(idAttributeName)
-
-            return idPropertyValue?.let {
-                val idPropertyValueClass = idPropertyValue.javaClass
-
-
-                when {
-                    requeryMetamodel.isRequeryManaged(idPropertyValueClass) ->
-                        idPropertyValue
-                    else -> DirectFieldAccessFallbackBeanWrapper(idPropertyValueClass)
-                        .getPropertyValue(tryFindSingularIdAttributeNameOrUseFallback(idPropertyValueClass, idAttributeName))
-                }
-            }
-        }
 
         private fun tryFindSingularIdAttributeNameOrUseFallback(idPropertyValueType: Class<out Any>,
                                                                 fallbackIdTypePropertyName: String): String {

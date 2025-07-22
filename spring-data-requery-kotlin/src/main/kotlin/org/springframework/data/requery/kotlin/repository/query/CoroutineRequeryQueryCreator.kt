@@ -140,7 +140,6 @@ open class CoroutineRequeryQueryCreator(val operations: CoroutineRequeryOperatio
 
         logger.trace { "Complete build query ..." }
 
-        // TODO: returnType.needsCustomConstruction() 을 이용해서 Custom Type 에 대한 작업을 수행할 수 있다.
 
         val query = if(criteria != null) base.where(criteria).unwrap() else base
         return query.applySort(domainKlass, sort)
@@ -157,148 +156,142 @@ open class CoroutineRequeryQueryCreator(val operations: CoroutineRequeryOperatio
 
         @Suppress("UNCHECKED_CAST")
         fun build(): LogicalCondition<out Any, *> {
-
             val property = part.property
             val type = part.type
-
             val expr: NamedExpression<Any> = NamedExpression.of(property.segment, property.type as Class<Any>)
 
             logger.debug { "Build Logical condition ... property=$property, type=$type, expr=$expr" }
 
             return when(type) {
-                BETWEEN ->
-                    expr.between(provider.next(part, Comparable::class.java).value,
-                                 provider.next(part, Comparable::class.java).value)
-
-                AFTER, GREATER_THAN ->
-                    expr.greaterThan(provider.next(part, Comparable::class.java).value)
-
-                GREATER_THAN_EQUAL ->
-                    expr.greaterThanOrEqual(provider.next(part, Comparable::class.java).value)
-
-                BEFORE, LESS_THAN ->
-                    expr.lessThan(provider.next(part, Comparable::class.java).value)
-
-                LESS_THAN_EQUAL ->
-                    expr.lessThanOrEqual(provider.next(part, Comparable::class.java).value)
-
+                BETWEEN -> buildBetweenCondition(expr)
+                AFTER, GREATER_THAN -> buildGreaterThanCondition(expr)
+                GREATER_THAN_EQUAL -> buildGreaterThanEqualCondition(expr)
+                BEFORE, LESS_THAN -> buildLessThanCondition(expr)
+                LESS_THAN_EQUAL -> buildLessThanEqualCondition(expr)
                 IS_NULL -> expr.isNull
-
                 IS_NOT_NULL -> expr.notNull()
-
-                NOT_IN, IN -> {
-                    val values = provider.next(part, Collection::class.java).value
-
-                    logger.debug { "IN, NOT IN values type=${values?.javaClass?.simpleName}, values=${values}" }
-
-                    values?.let {
-                        when(values) {
-                            is Iterable<*> -> {
-                                logger.trace { "value is iterable. values=${values.toList()}" }
-                                if(type == IN) Expressions.`in`(expr, values.toList())
-                                else Expressions.notIn(expr, values.toList())
-                            }
-
-                            is Array<*> -> {
-                                logger.trace { "value is array. values=${values.toList()}" }
-                                if(type == IN) Expressions.`in`(expr, values.toList())
-                                else Expressions.notIn(expr, values.toList())
-                            }
-
-                            // TODO: Kotlin Primitive Array 인지 다 추가해주어야 합니다.
-
-                            is IntArray -> {
-                                logger.trace { "value is array. values=${values}" }
-                                if(type == IN) Expressions.`in`(expr, values.toList())
-                                else Expressions.notIn(expr, values.toList())
-                            }
-                            is LongArray -> {
-                                logger.trace { "value is array. values=${values}" }
-                                if(type == IN) Expressions.`in`(expr, values.toList())
-                                else Expressions.notIn(expr, values.toList())
-                            }
-                            is ShortArray -> {
-                                logger.trace { "value is array. values=${values}" }
-                                if(type == IN) Expressions.`in`(expr, values.toList())
-                                else Expressions.notIn(expr, values.toList())
-                            }
-                            is CharArray -> {
-                                logger.trace { "value is array. values=${values}" }
-                                if(type == IN) Expressions.`in`(expr, values.toList())
-                                else Expressions.notIn(expr, values.toList())
-                            }
-                            is ByteArray -> {
-                                logger.trace { "value is array. values=${values}" }
-                                if(type == IN) Expressions.`in`(expr, values.toList())
-                                else Expressions.notIn(expr, values.toList())
-                            }
-                            is FloatArray -> {
-                                logger.trace { "value is array. values=${values}" }
-                                if(type == IN) Expressions.`in`(expr, values.toList())
-                                else Expressions.notIn(expr, values.toList())
-                            }
-                            is DoubleArray -> {
-                                logger.trace { "value is array. values=${values}" }
-                                if(type == IN) Expressions.`in`(expr, values.toList())
-                                else Expressions.notIn(expr, values.toList())
-                            }
-                            else ->
-                                if(type == IN) expr.`in`(values) else expr.notIn(values)
-                        }
-                    } ?: error("Not provided in columns")
-                }
-
-                STARTING_WITH -> expr.like(provider.next(part, String::class.java).value.toString() + "%")
-
-                ENDING_WITH -> expr.like("%" + provider.next(part, String::class.java).value.toString())
-
-                CONTAINING -> expr.like("%" + provider.next(part, String::class.java).value.toString() + "%")
-
-                NOT_CONTAINING -> expr.notLike("%" + provider.next(part, String::class.java).value.toString() + "%")
-
-                LIKE, NOT_LIKE -> {
-
-                    var value = provider.next(part, String::class.java).value.toString()
-                    if(shouldIgnoreCase()) {
-                        value = value.toUpperCase()
-                    }
-                    if(!value.startsWith("%") && !value.endsWith("%")) {
-                        value = "%$value%"
-                    }
-
-                    when(type) {
-                        LIKE -> expr.upperIfIgnoreCase().like(value)
-                        else -> expr.upperIfIgnoreCase().notLike(value)
-                    }
-                }
-
+                NOT_IN, IN -> buildInCondition(expr, type)
+                STARTING_WITH, ENDING_WITH, CONTAINING, NOT_CONTAINING -> buildStringPatternCondition(expr, type)
+                LIKE, NOT_LIKE -> buildLikeCondition(expr, type)
                 TRUE -> expr.eq(true)
-
                 FALSE -> expr.eq(false)
-
-                SIMPLE_PROPERTY -> {
-                    val simpleExpr = provider.next<Any>(part)
-
-                    when {
-                        simpleExpr.isNullParameter -> expr.isNull
-                        else -> {
-                            val value = if(shouldIgnoreCase()) simpleExpr.value!!.toUpperCase() else simpleExpr.value
-                            expr.upperIfIgnoreCase().equal(value)
-                        }
-                    }
-                }
-
-                NEGATING_SIMPLE_PROPERTY -> {
-                    val simpleExpr = provider.next<Any>(part)
-                    val value = if(shouldIgnoreCase()) simpleExpr.value!!.toUpperCase() else simpleExpr.value
-                    expr.upperIfIgnoreCase().notEqual(value)
-                }
-
-                IS_EMPTY, IS_NOT_EMPTY ->
-                    throw NotSupportedException("Not supported keyword $type")
-                else ->
-                    throw NotSupportedException("Not supported keyword $type")
+                SIMPLE_PROPERTY -> buildSimplePropertyCondition(expr)
+                NEGATING_SIMPLE_PROPERTY -> buildNegatingSimplePropertyCondition(expr)
+                IS_EMPTY, IS_NOT_EMPTY -> throw NotSupportedException("Not supported keyword $type")
+                else -> throw NotSupportedException("Not supported keyword $type")
             }
+        }
+
+        private fun buildBetweenCondition(expr: NamedExpression<Any>): LogicalCondition<out Any, *> {
+            return expr.between(
+                provider.next(part, Comparable::class.java).value,
+                provider.next(part, Comparable::class.java).value
+            )
+        }
+
+        private fun buildGreaterThanCondition(expr: NamedExpression<Any>): LogicalCondition<out Any, *> {
+            return expr.greaterThan(provider.next(part, Comparable::class.java).value)
+        }
+
+        private fun buildGreaterThanEqualCondition(expr: NamedExpression<Any>): LogicalCondition<out Any, *> {
+            return expr.greaterThanOrEqual(provider.next(part, Comparable::class.java).value)
+        }
+
+        private fun buildLessThanCondition(expr: NamedExpression<Any>): LogicalCondition<out Any, *> {
+            return expr.lessThan(provider.next(part, Comparable::class.java).value)
+        }
+
+        private fun buildLessThanEqualCondition(expr: NamedExpression<Any>): LogicalCondition<out Any, *> {
+            return expr.lessThanOrEqual(provider.next(part, Comparable::class.java).value)
+        }
+
+        private fun buildInCondition(expr: NamedExpression<Any>, type: Part.Type): LogicalCondition<out Any, *> {
+            val values = provider.next(part, Collection::class.java).value
+            logger.debug { "IN, NOT IN values type=${values?.javaClass?.simpleName}, values=${values}" }
+
+            return values?.let { buildInConditionForValues(expr, type, it) }
+                ?: error("Not provided in columns")
+        }
+
+        private fun buildInConditionForValues(expr: NamedExpression<Any>, type: Part.Type, values: Any): LogicalCondition<out Any, *> {
+            return when(values) {
+                is Iterable<*> -> buildInConditionForIterable(expr, type, values)
+                is Array<*> -> buildInConditionForArray(expr, type, values)
+                is IntArray, is LongArray, is ShortArray, is CharArray, 
+                is ByteArray, is FloatArray, is DoubleArray -> buildInConditionForPrimitiveArray(expr, type, values)
+                else -> if(type == IN) expr.`in`(values) else expr.notIn(values)
+            }
+        }
+
+        private fun buildInConditionForIterable(expr: NamedExpression<Any>, type: Part.Type, values: Iterable<*>): LogicalCondition<out Any, *> {
+            logger.trace { "value is iterable. values=${values.toList()}" }
+            return if(type == IN) Expressions.`in`(expr, values.toList())
+            else Expressions.notIn(expr, values.toList())
+        }
+
+        private fun buildInConditionForArray(expr: NamedExpression<Any>, type: Part.Type, values: Array<*>): LogicalCondition<out Any, *> {
+            logger.trace { "value is array. values=${values.toList()}" }
+            return if(type == IN) Expressions.`in`(expr, values.toList())
+            else Expressions.notIn(expr, values.toList())
+        }
+
+        private fun buildInConditionForPrimitiveArray(expr: NamedExpression<Any>, type: Part.Type, values: Any): LogicalCondition<out Any, *> {
+            logger.trace { "value is primitive array. values=${values}" }
+            val valuesList = when(values) {
+                is IntArray -> values.toList()
+                is LongArray -> values.toList()
+                is ShortArray -> values.toList()
+                is CharArray -> values.toList()
+                is ByteArray -> values.toList()
+                is FloatArray -> values.toList()
+                is DoubleArray -> values.toList()
+                else -> error("Unsupported primitive array type")
+            }
+            return if(type == IN) Expressions.`in`(expr, valuesList)
+            else Expressions.notIn(expr, valuesList)
+        }
+
+        private fun buildStringPatternCondition(expr: NamedExpression<Any>, type: Part.Type): LogicalCondition<out Any, *> {
+            val value = provider.next(part, String::class.java).value.toString()
+            return when(type) {
+                STARTING_WITH -> expr.like("$value%")
+                ENDING_WITH -> expr.like("%$value")
+                CONTAINING -> expr.like("%$value%")
+                NOT_CONTAINING -> expr.notLike("%$value%")
+                else -> error("Unsupported string pattern type: $type")
+            }
+        }
+
+        private fun buildLikeCondition(expr: NamedExpression<Any>, type: Part.Type): LogicalCondition<out Any, *> {
+            var value = provider.next(part, String::class.java).value.toString()
+            if(shouldIgnoreCase()) {
+                value = value.toUpperCase()
+            }
+            if(!value.startsWith("%") && !value.endsWith("%")) {
+                value = "%$value%"
+            }
+
+            return when(type) {
+                LIKE -> expr.upperIfIgnoreCase().like(value)
+                else -> expr.upperIfIgnoreCase().notLike(value)
+            }
+        }
+
+        private fun buildSimplePropertyCondition(expr: NamedExpression<Any>): LogicalCondition<out Any, *> {
+            val simpleExpr = provider.next<Any>(part)
+            return when {
+                simpleExpr.isNullParameter -> expr.isNull
+                else -> {
+                    val value = if(shouldIgnoreCase()) simpleExpr.value!!.toUpperCase() else simpleExpr.value
+                    expr.upperIfIgnoreCase().equal(value)
+                }
+            }
+        }
+
+        private fun buildNegatingSimplePropertyCondition(expr: NamedExpression<Any>): LogicalCondition<out Any, *> {
+            val simpleExpr = provider.next<Any>(part)
+            val value = if(shouldIgnoreCase()) simpleExpr.value!!.toUpperCase() else simpleExpr.value
+            return expr.upperIfIgnoreCase().notEqual(value)
         }
 
         private fun <T> FieldExpression<T>.upperIfIgnoreCase(): FieldExpression<T> {

@@ -52,9 +52,6 @@ class DeclaredRequeryQuery(queryMethod: RequeryQueryMethod, operations: RequeryO
 
         log.debug { "Execute query. query=$query, return type=${queryMethod.returnType}" }
 
-        // TODO: Refactoring이 필요하다.
-        // TODO: Entity 나 Tuple 에 대해 ReturnedType에 맞게 casting 해야 한다.
-
         val accessor = RequeryParametersParameterAccessor(queryMethod.parameters, parameters)
         val pageable = accessor.pageable
 
@@ -83,8 +80,6 @@ class DeclaredRequeryQuery(queryMethod: RequeryQueryMethod, operations: RequeryO
     }
 
     private fun Result<*>.castResult(pageable: Pageable = Pageable.unpaged(), totals: Long? = null): Any? {
-        // TODO: List<Tuple> 인 경우 returned type 으로 변경해야 한다.
-
         return when {
             queryMethod.isCollectionQuery -> this.toList()
             queryMethod.isStreamQuery -> this.stream()
@@ -114,15 +109,6 @@ class DeclaredRequeryQuery(queryMethod: RequeryQueryMethod, operations: RequeryO
         return nativeQuery
     }
 
-    private fun getReturnedType(parameters: Array<Any>): ReturnedType {
-        val accessor = RequeryParametersParameterAccessor(queryMethod, parameters)
-        val processor = queryMethod.resultProcessor
-
-        val returnedType = processor.withDynamicProjection(accessor).returnedType
-        log.trace { "Return type is $returnedType" }
-
-        return returnedType
-    }
 
     // 인자 컬렉션의 Pageable 인스턴스의 index 를 찾아 parameters 에서 제거한다.
     private fun removePageable(accessor: RequeryParametersParameterAccessor, parameters: Array<Any>): Array<Any> {
