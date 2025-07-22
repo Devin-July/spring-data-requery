@@ -105,8 +105,6 @@ object CoroutineRequeryQueryLookupStrategy : KLogging() {
                 return CoroutineDeclaredRequeryQuery(method, operations)
             }
 
-            // TODO: spring-data-jpa 처럼 NamedQuery 를 만들어서 제공해야 한다. (spring-data-jdbc 를 활용하자)
-            // NOTE: NamedQuery 가 하는 일이 Custom implemented queryMethod 에 대한 수행을 담당한다. ㅠ.ㅠ
             error("Cannot find a annotated query for queryMethod [$method]")
         }
     }

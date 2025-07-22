@@ -40,7 +40,6 @@ class RequeryQueryMethod(val method: Method,
     companion object {
         private val log = KotlinLogging.logger { }
 
-        // TODO: 혹시 이 것이 안되면, Java code에서 import 해야 한다.
         private val NATIVE_ARRAY_TYPES: Set<Class<*>> by lazy {
             LinkedHashSet<Class<*>>().apply {
                 add(ByteArray::class.java)

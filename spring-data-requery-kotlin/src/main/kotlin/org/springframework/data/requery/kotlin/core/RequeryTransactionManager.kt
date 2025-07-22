@@ -31,7 +31,6 @@ import javax.sql.DataSource
  * @author debop
  * @since 18. 7. 2
  */
-// TODO: Spring의 Transaction Isolation 도 반영해야 한다. 
 class RequeryTransactionManager(val dataStore: KotlinEntityDataStore<Any>,
                                 dataSource: DataSource) : DataSourceTransactionManager(dataSource) {
 

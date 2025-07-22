@@ -30,7 +30,6 @@ interface RequeryEntityInformation<E : Any, ID : Any> : EntityInformation<E, ID>
     /**
      * Returns the key attriute of the entity
      */
-    // TODO: rename to getKeyAttribute()
     fun getIdAttribute(): Attribute<out E, out Any>?
 
     @JvmDefault

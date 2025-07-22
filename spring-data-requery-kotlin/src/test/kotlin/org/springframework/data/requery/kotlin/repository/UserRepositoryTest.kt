@@ -1059,8 +1059,6 @@ class UserRepositoryTest {
 
         flushTestUsers()
 
-        // TODO: Tuple 을 returned type 으로 추출하는 작업이 필요하다.
-        // TODO: @Convert 를 사용한 property 에 대해서 변환작업도 필요하다. Blob 를 byte[] 로 바꾸는 ...
         val result = repository.findBinaryDataByIdNative(firstUser.id)
 
         assertThat(result).isNotNull()
@@ -1584,7 +1582,6 @@ class UserRepositoryTest {
         assertThat(result.content[0]).isEqualTo(firstUser)
     }
 
-    // TODO: Raw String에서는 수형검사를 수행하지 않는다. (requery에서 지원하지 않는다)
     @Test
     fun exceptionsDuringParameterSettingGetThrown() {
 

@@ -272,7 +272,6 @@ internal class ExistsExecution : RequeryQueryExecution() {
     }
 
     override fun doExecute(query: AbstractRequeryQuery, values: Array<Any>): Any? {
-        // TODO: Entity를 Load하는 것과 Count를 세는 것의 성능 차이 비교가 필요하다.
         log.debug { "execute Exists query. query=$query, values=$values" }
         return query
             .createQueryElement(values)

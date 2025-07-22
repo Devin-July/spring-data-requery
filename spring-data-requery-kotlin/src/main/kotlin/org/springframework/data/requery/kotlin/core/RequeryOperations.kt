@@ -41,7 +41,6 @@ import kotlin.reflect.KClass
 
 /**
  *  Java용 RequeryOperations
- *  // TODO: Move to Java code
  *
  * @author debop
  */
