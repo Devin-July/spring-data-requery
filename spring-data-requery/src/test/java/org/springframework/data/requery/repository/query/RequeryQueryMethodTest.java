@@ -218,7 +218,7 @@ public class RequeryQueryMethodTest {
         Page<User> findByFirstname(String firstname, Pageable first, Pageable second);
 
         // Must not use two Sorts
-        Page<User> findByFirstname(String firstname, Sort first, Sort second);
+        Page<User> findByFirstname(String firstname, Sort first, Sort second, Pageable pageable);
 
         // Not backed by a named query or @Query annotation
         // @Modifying
