@@ -77,8 +77,8 @@ open class RequeryEntityModelEntityInformation<E : Any, ID : Any>(kotlinType: KC
 
         this._entityName = domainType.name
 
-        if(domainType.keyAttributes.isEmpty()) {
-            throw IllegalArgumentException("The given domain class does not contains an id attribute! kotlinType=$kotlinType")
+        require(domainType.keyAttributes.isNotEmpty()) {
+            "The given domain class does not contains an id attribute! kotlinType=$kotlinType"
         }
 
         this.idMetadata = IdMetadata(domainType)
