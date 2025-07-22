@@ -212,17 +212,6 @@ open class RequeryEntityModelEntityInformation<E : Any, ID : Any>(kotlinType: KC
         }
 
 
-        private fun tryFindSingularIdAttributeNameOrUseFallback(idPropertyValueType: Class<out Any>,
-                                                                fallbackIdTypePropertyName: String): String {
-            log.debug { "idPropertyValue=$idPropertyValueType, fallbackIdTypePropertyName=$fallbackIdTypePropertyName" }
-
-            val idPropertyType = entityModel.typeOf(idPropertyValueType)
-
-            return idPropertyType?.attributes
-                       ?.find { it.isKey }
-                       ?.name
-                   ?: fallbackIdTypePropertyName
-        }
 
         private fun isIdentifierDerivationNecessary(value: Any?): Boolean {
             return value?.let {
