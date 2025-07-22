@@ -83,9 +83,6 @@ class RequeryRepositoryConfigurationExtension : RepositoryConfigurationExtension
 
     override fun getConfigurationInspectionClassLoader(loader: ResourceLoader): ClassLoader? {
 
-        //        return if(loader.classLoader != null && LazyJvmAgent.isActive(loader.classLoader))
-        //            InspectionClassLoader(loader.classLoader!!)
-        //        else loader.classLoader
 
         return loader.classLoader?.let {
             InspectionClassLoader(it)
@@ -98,7 +95,6 @@ class RequeryRepositoryConfigurationExtension : RepositoryConfigurationExtension
         private val AGENT_CLASSES: Set<String> by lazy {
             LinkedHashSet<String>().apply {
                 add("org.springframework.instrument.InstrumentationSavingAgent")
-                // add("org.eclipse.persistence.internal.jpa.deployment.JavaSECMPInitializerAgent")
             }
         }
 
